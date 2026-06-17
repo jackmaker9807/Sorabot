@@ -52,3 +52,14 @@ Thumbs.db
 artifacts/api-server/data/*.db
 artifacts/api-server/data/*.db-shm
 artifacts/api-server/data/*.db-wal
+
+# Environment variables (berisi secrets)
+.env
+.env.local
+.env.*.local
+
+# Asset uploads & lampiran
+attached_assets/
+
+# Replit agent memory
+.agents/
