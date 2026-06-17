@@ -1,0 +1,38 @@
+[Unit]
+Description=SoraBot — Discord AI Bot & Dashboard
+Documentation=https://github.com/sorabot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sorabot
+WorkingDirectory=/opt/sorabot/artifacts/api-server
+
+# Load env vars dari file
+EnvironmentFile=/opt/sorabot/.env
+
+# Override / tambahan env
+Environment=NODE_ENV=production
+Environment=PORT=8080
+Environment=FRONTEND_DIST=/opt/sorabot/artifacts/api-server/public
+
+ExecStart=/usr/bin/node --enable-source-maps /opt/sorabot/artifacts/api-server/dist/index.mjs
+
+# Auto-restart jika crash
+Restart=always
+RestartSec=5
+StartLimitInterval=60
+StartLimitBurst=5
+
+# Logging ke systemd journal
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sorabot
+
+# Batasan keamanan dasar
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
