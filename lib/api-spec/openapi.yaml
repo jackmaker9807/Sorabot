@@ -3,20 +3,31 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Sorabot API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: bot
+    description: Discord bot control
+  - name: rules
+    description: Auto-reply rules
+  - name: logs
+    description: Message logs
+  - name: settings
+    description: Bot settings
+  - name: ai-providers
+    description: AI provider credentials
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +35,413 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/me:
+    get:
+      operationId: getAuthMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Auth status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+        "401":
+          description: Unauthenticated
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+
+  /auth/change-password:
+    post:
+      operationId: changePassword
+      tags: [auth]
+      summary: Change password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+
+  /bot/status:
+    get:
+      operationId: getBotStatus
+      tags: [bot]
+      summary: Get bot status
+      responses:
+        "200":
+          description: Bot status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/toggle:
+    post:
+      operationId: toggleBot
+      tags: [bot]
+      summary: Start or stop bot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotToggleInput"
+      responses:
+        "200":
+          description: Updated bot status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [bot]
+      summary: Get statistics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+
+  /rules:
+    get:
+      operationId: listRules
+      tags: [rules]
+      summary: List all rules
+      responses:
+        "200":
+          description: List of rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rule"
+    post:
+      operationId: createRule
+      tags: [rules]
+      summary: Create a rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuleInput"
+      responses:
+        "201":
+          description: Created rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rule"
+
+  /rules/{id}:
+    get:
+      operationId: getRule
+      tags: [rules]
+      summary: Get a rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rule"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateRule
+      tags: [rules]
+      summary: Update a rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuleUpdate"
+      responses:
+        "200":
+          description: Updated rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rule"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteRule
+      tags: [rules]
+      summary: Delete a rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /rules/{id}/toggle:
+    post:
+      operationId: toggleRule
+      tags: [rules]
+      summary: Toggle rule enabled/disabled
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rule"
+        "404":
+          description: Not found
+
+  /logs:
+    get:
+      operationId: listLogs
+      tags: [logs]
+      summary: List message logs
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Message logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MessageLog"
+
+  /settings:
+    get:
+      operationId: getBotSettings
+      tags: [settings]
+      summary: Get bot settings
+      responses:
+        "200":
+          description: Bot settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotSettings"
+    patch:
+      operationId: updateBotSettings
+      tags: [settings]
+      summary: Update bot settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotSettingsUpdate"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotSettings"
+
+  /settings/test:
+    post:
+      operationId: testBotSettings
+      tags: [settings]
+      summary: Test bot connection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestConnectionInput"
+      responses:
+        "200":
+          description: Test result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestConnectionResult"
+
+  /settings/ai-providers:
+    get:
+      operationId: listAiProviders
+      tags: [ai-providers]
+      summary: List AI providers
+      responses:
+        "200":
+          description: AI providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AiProvider"
+    post:
+      operationId: createAiProvider
+      tags: [ai-providers]
+      summary: Add AI provider
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiProviderInput"
+      responses:
+        "201":
+          description: Created AI provider
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiProvider"
+
+  /settings/ai-providers/test:
+    post:
+      operationId: testAiProvider
+      tags: [ai-providers]
+      summary: Test AI provider
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiProviderTestInput"
+      responses:
+        "200":
+          description: Test result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiProviderTestResult"
+
+  /settings/ai-providers/{id}:
+    patch:
+      operationId: updateAiProvider
+      tags: [ai-providers]
+      summary: Update AI provider
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiProviderUpdate"
+      responses:
+        "200":
+          description: Updated AI provider
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiProvider"
+    delete:
+      operationId: deleteAiProvider
+      tags: [ai-providers]
+      summary: Delete AI provider
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /settings/ai-providers/{id}/toggle:
+    post:
+      operationId: toggleAiProvider
+      tags: [ai-providers]
+      summary: Toggle AI provider enabled/disabled
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated AI provider
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiProvider"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +452,354 @@ components:
       required:
         - status
 
+    OkResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+      required:
+        - ok
+
+    AuthStatus:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        username:
+          type: ["string", "null"]
+        token:
+          type: ["string", "null"]
+      required:
+        - authenticated
+
+    LoginInput:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - password
+
+    ChangePasswordInput:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+        newUsername:
+          type: ["string", "null"]
+      required:
+        - currentPassword
+        - newPassword
+
+    BotStatus:
+      type: object
+      properties:
+        running:
+          type: boolean
+        username:
+          type: ["string", "null"]
+        discriminator:
+          type: ["string", "null"]
+        guildCount:
+          type: integer
+        ping:
+          type: ["integer", "null"]
+        startedAt:
+          type: ["string", "null"]
+        error:
+          type: ["string", "null"]
+      required:
+        - running
+        - guildCount
+
+    BotToggleInput:
+      type: object
+      properties:
+        running:
+          type: boolean
+      required:
+        - running
+
+    Stats:
+      type: object
+      properties:
+        totalReplies:
+          type: integer
+        activeRules:
+          type: integer
+        totalRules:
+          type: integer
+        todayReplies:
+          type: integer
+      required:
+        - totalReplies
+        - activeRules
+        - totalRules
+        - todayReplies
+
+    Rule:
+      type: object
+      properties:
+        id:
+          type: integer
+        keyword:
+          type: string
+        response:
+          type: string
+        matchType:
+          type: string
+          enum: [contains, exact, startsWith, endsWith, regex]
+        caseSensitive:
+          type: boolean
+        enabled:
+          type: boolean
+        triggerCount:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - keyword
+        - response
+        - matchType
+        - caseSensitive
+        - enabled
+        - triggerCount
+        - createdAt
+
+    RuleInput:
+      type: object
+      properties:
+        keyword:
+          type: string
+          minLength: 1
+        response:
+          type: string
+          minLength: 1
+        matchType:
+          type: string
+          enum: [contains, exact, startsWith, endsWith, regex]
+        caseSensitive:
+          type: boolean
+      required:
+        - keyword
+        - response
+
+    RuleUpdate:
+      type: object
+      properties:
+        keyword:
+          type: string
+        response:
+          type: string
+        matchType:
+          type: string
+          enum: [contains, exact, startsWith, endsWith, regex]
+        caseSensitive:
+          type: boolean
+        enabled:
+          type: boolean
+
+    MessageLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        guildName:
+          type: ["string", "null"]
+        channelName:
+          type: string
+        authorUsername:
+          type: string
+        triggerMessage:
+          type: string
+        botResponse:
+          type: string
+        ruleId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - channelName
+        - authorUsername
+        - triggerMessage
+        - botResponse
+        - createdAt
+
+    BotSettings:
+      type: object
+      properties:
+        id:
+          type: integer
+        personality:
+          type: string
+        aiEnabled:
+          type: boolean
+        respondToAll:
+          type: boolean
+        mentionOnly:
+          type: boolean
+        gifEnabled:
+          type: boolean
+        gifCooldownSeconds:
+          type: integer
+        stickerEnabled:
+          type: boolean
+        hasDiscordToken:
+          type: boolean
+        hasAiProviders:
+          type: boolean
+        aiProviderCount:
+          type: integer
+        updatedAt:
+          type: string
+      required:
+        - id
+        - personality
+        - aiEnabled
+        - respondToAll
+        - mentionOnly
+        - gifEnabled
+        - gifCooldownSeconds
+        - stickerEnabled
+        - hasDiscordToken
+        - hasAiProviders
+        - aiProviderCount
+        - updatedAt
+
+    BotSettingsUpdate:
+      type: object
+      properties:
+        personality:
+          type: string
+        aiEnabled:
+          type: boolean
+        respondToAll:
+          type: boolean
+        mentionOnly:
+          type: boolean
+        discordToken:
+          type: ["string", "null"]
+        gifEnabled:
+          type: boolean
+        gifCooldownSeconds:
+          type: integer
+        stickerEnabled:
+          type: boolean
+
+    TestConnectionInput:
+      type: object
+      properties:
+        discordToken:
+          type: ["string", "null"]
+
+    TestConnectionResult:
+      type: object
+      properties:
+        discord:
+          type: object
+          properties:
+            ok:
+              type: boolean
+            message:
+              type: string
+          required:
+            - ok
+            - message
+      required:
+        - discord
+
+    AiProvider:
+      type: object
+      properties:
+        id:
+          type: integer
+        provider:
+          type: string
+        label:
+          type: ["string", "null"]
+        maskedKey:
+          type: string
+        baseUrl:
+          type: ["string", "null"]
+        model:
+          type: string
+        enabled:
+          type: boolean
+        priority:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - provider
+        - maskedKey
+        - model
+        - enabled
+        - priority
+        - createdAt
+
+    AiProviderInput:
+      type: object
+      properties:
+        provider:
+          type: string
+        label:
+          type: ["string", "null"]
+        key:
+          type: string
+        baseUrl:
+          type: ["string", "null"]
+        model:
+          type: string
+        priority:
+          type: integer
+      required:
+        - provider
+        - key
+        - model
+
+    AiProviderUpdate:
+      type: object
+      properties:
+        label:
+          type: ["string", "null"]
+        enabled:
+          type: boolean
+        model:
+          type: string
+        priority:
+          type: integer
+
+    AiProviderTestInput:
+      type: object
+      properties:
+        provider:
+          type: string
+        key:
+          type: string
+        baseUrl:
+          type: ["string", "null"]
+        model:
+          type: string
+      required:
+        - provider
+        - key
+        - model
+
+    AiProviderTestResult:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        message:
+          type: string
+      required:
+        - ok
+        - message

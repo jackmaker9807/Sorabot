@@ -47,3 +47,8 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Database files (sensitif — jangan di-commit)
+artifacts/api-server/data/*.db
+artifacts/api-server/data/*.db-shm
+artifacts/api-server/data/*.db-wal

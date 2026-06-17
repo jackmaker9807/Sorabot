@@ -1,36 +1,53 @@
-# [Project name]
+# SoraBot
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Discord AI Bot dengan Dashboard Web — kontrol penuh bot Discord kamu lewat antarmuka web tanpa perlu menyentuh kode.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/api-server run dev` — jalankan API server + bot (port 8080)
+- `pnpm --filter @workspace/discord-bot run dev` — jalankan dashboard web (port 20320)
+- `pnpm run typecheck` — full typecheck semua packages
+- `pnpm run build` — typecheck + build semua packages
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks dan Zod schemas dari OpenAPI spec
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- API: Express 5 + WebSocket (ws)
+- DB: SQLite (better-sqlite3) / PostgreSQL + Drizzle ORM
+- Discord: discord.js v14
+- AI: OpenAI SDK, Google Generative AI
+- Frontend: React 19, Vite, Tailwind CSS, Wouter
+- Validation: Zod, drizzle-zod
+- API codegen: Orval (dari OpenAPI spec)
+- Build: esbuild (ESM bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/api-server/` — Express API server + Discord bot + WebSocket
+- `artifacts/discord-bot/` — React dashboard frontend
+- `artifacts/api-server/data/db-config.json` — konfigurasi database (sqlite/postgres)
+- `artifacts/api-server/data/sora.db` — SQLite database (dibuat otomatis)
+- `lib/api-spec/openapi.yaml` — OpenAPI spec (sumber kebenaran API)
+- `lib/api-client-react/src/generated/` — React Query hooks (auto-generated)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- SQLite by default, bisa ganti ke PostgreSQL via `db-config.json`
+- DB binding diekspor sebagai `let` + `initDb()` untuk lazy initialization (SQLite/PG swap)
+- Auth berbasis token sederhana (Bearer token), disimpan di localStorage
+- WebSocket di `/ws` untuk realtime log streaming ke dashboard
+- Setup wizard otomatis muncul saat `adminPasswordHash` masih null
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Login dashboard dengan akun admin
+- Setup wizard pertama kali (buat akun, isi Discord token, konfigurasi AI provider)
+- Kontrol bot (start/stop) dari dashboard
+- Manajemen rules (keyword → respons otomatis)
+- Log percakapan real-time via WebSocket
+- Pengaturan bot (personality AI, mode respons, GIF/sticker)
+- Multi AI provider dengan priority fallback (Gemini, OpenAI, OpenRouter, custom)
 
 ## User preferences
 
@@ -38,7 +55,10 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Selalu restart workflow `api-server` setelah mengubah source code (nodemon akan auto-rebuild)
+- `db` di-export sebagai `let` — gunakan `getDbRefs()` di route handlers, bukan import langsung
+- Setup wizard hanya muncul sekali (saat `adminPasswordHash` null)
+- Default login: `admin` / `admin` (sebelum setup wizard dijalankan)
 
 ## Pointers
 
