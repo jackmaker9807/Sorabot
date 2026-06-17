@@ -67,6 +67,7 @@ function AppRouter() {
       if (setupRes.ok) {
         const setupData = await setupRes.json() as { needsSetup: boolean };
         if (setupData.needsSetup) {
+          clearAuth();
           setAppState("setup");
           return;
         }
