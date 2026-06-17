@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits, Events, Message, Sticker } from "discord.js";
-import { db, rulesTable, messageLogsTable, botSettingsTable, aiProvidersTable, userProfilesTable } from "./db";
+import { db, rulesTable, messageLogsTable, botSettingsTable, aiProvidersTable, userProfilesTable, type AiProviderRow } from "./db";
 import type { BotSettings, Rule } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { logger } from "./logger";
@@ -53,7 +53,7 @@ async function getCachedAiProviders(): Promise<AiProviderConfig[]> {
     .from(aiProvidersTable)
     .where(eq(aiProvidersTable.enabled, true))
     .orderBy(aiProvidersTable.priority, aiProvidersTable.createdAt);
-  const providers: AiProviderConfig[] = rows.map((r) => ({
+  const providers: AiProviderConfig[] = rows.map((r: AiProviderRow) => ({
     id: r.id,
     provider: r.provider,
     keyValue: r.keyValue,

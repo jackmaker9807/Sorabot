@@ -50,18 +50,17 @@ export default function Home() {
   const prevLastLogRef = useRef<typeof lastLogEvent>(null);
 
   useEffect(() => {
-    if (lastLogEvent && lastLogEvent !== prevLastLogRef.current) {
-      prevLastLogRef.current = lastLogEvent;
-      setNewLogIds((prev) => new Set([...prev, lastLogEvent.id]));
-      const timer = setTimeout(() => {
-        setNewLogIds((prev) => {
-          const next = new Set(prev);
-          next.delete(lastLogEvent.id);
-          return next;
-        });
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
+    if (!lastLogEvent || lastLogEvent === prevLastLogRef.current) return;
+    prevLastLogRef.current = lastLogEvent;
+    setNewLogIds((prev) => new Set([...prev, lastLogEvent.id]));
+    const timer = setTimeout(() => {
+      setNewLogIds((prev) => {
+        const next = new Set(prev);
+        next.delete(lastLogEvent.id);
+        return next;
+      });
+    }, 3000);
+    return () => clearTimeout(timer);
   }, [lastLogEvent]);
 
   const toggleBotMutation = useToggleBot({

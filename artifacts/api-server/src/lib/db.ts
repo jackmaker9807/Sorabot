@@ -126,6 +126,13 @@ function migrateSqlite(sqlite: Database.Database): void {
   `);
 }
 
+// ── Row type aliases (SQLite schema — mirrors PG schema) ─────────────────────
+export type RuleRow = typeof rulesTableSqlite.$inferSelect;
+export type MessageLogRow = typeof messageLogsTableSqlite.$inferSelect;
+export type AiProviderRow = typeof aiProvidersTableSqlite.$inferSelect;
+export type BotSettingsRow = typeof botSettingsTableSqlite.$inferSelect;
+export type UserProfileRow = typeof userProfilesTableSqlite.$inferSelect;
+
 // ── Exported live bindings ────────────────────────────────────────────────────
 // Initialised as SQLite placeholders; initDb() replaces them before the server
 // starts listening, so route handlers always see the correct values.

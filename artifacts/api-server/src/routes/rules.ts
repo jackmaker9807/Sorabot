@@ -1,12 +1,12 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
-import { db, rulesTable } from "../lib/db";
+import { db, rulesTable, type RuleRow } from "../lib/db";
 
 const router: IRouter = Router();
 
 router.get("/rules", async (_req, res): Promise<void> => {
   const rules = await db.select().from(rulesTable).orderBy(rulesTable.createdAt);
-  res.json(rules.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })));
+  res.json(rules.map((r: RuleRow) => ({ ...r, createdAt: r.createdAt.toISOString() })));
 });
 
 router.post("/rules", async (req, res): Promise<void> => {
