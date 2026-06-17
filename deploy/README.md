@@ -211,24 +211,26 @@ sudo bash /opt/sorabot/deploy/update.sh
 
 ---
 
-## Tips Khusus Orange Pi Zero 3
+## Tips Khusus Device RAM Kecil (1 GB)
 
-Orange Pi Zero 3 punya RAM terbatas (1-2 GB). Beberapa hal yang perlu diperhatikan:
+`install.sh` sudah otomatis mendeteksi RAM dan mengoptimalkan semua setting. Ini yang terjadi di balik layar:
 
-1. **Gunakan swap** jika RAM 1GB:
-   ```bash
-   sudo fallocate -l 1G /swapfile
-   sudo chmod 600 /swapfile
-   sudo mkswap /swapfile
-   sudo swapon /swapfile
-   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-   ```
+| RAM Terdeteksi | Node.js Heap | Swap Otomatis |
+|---|---|---|
+| ≤ 768 MB | 256 MB | ✅ Dibuat 1GB |
+| ≤ 1.2 GB (1GB device) | 512 MB | ✅ Dibuat 1GB |
+| ≤ 2 GB | 1024 MB | ❌ Tidak perlu |
+| > 2 GB | 2048 MB | ❌ Tidak perlu |
 
-2. **`better-sqlite3` dikompilasi otomatis** saat `pnpm install`. Pastikan `build-essential` dan `python3` terinstall.
+**Untuk Orange Pi Zero 3 (1GB):**
+- Script otomatis buat swap 1GB permanen di `/swapfile`
+- `vm.swappiness=10` diset agar RAM dipakai lebih dulu sebelum swap
+- Node.js heap dibatasi 512MB agar OS tetap punya ruang
+- Build mungkin butuh **5–15 menit** — ini normal untuk ARM
 
-3. **Build memakan waktu lebih lama** di ARM — wajar, bisa 5-10 menit.
+**`better-sqlite3`** dikompilasi otomatis saat `pnpm install` — tidak perlu langkah tambahan karena `build-essential` dan `python3` sudah diinstall oleh script.
 
-4. **CPU throttling**: Pastikan heatsink/cooling memadai agar tidak thermal throttle saat build.
+**CPU throttling**: Pastikan heatsink/cooling memadai saat proses build agar tidak thermal throttle.
 
 ---
 
